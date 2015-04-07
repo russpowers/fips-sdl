@@ -20,8 +20,10 @@
   3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef _SDL_linux_config_h
-#define _SDL_linux_config_h
+#ifndef _SDL_config_h
+#define _SDL_config_h
+
+#ifndef USING_GENERATED_CONFIG_H
 
 /**
  *  \file SDL_config.h.in
@@ -31,6 +33,7 @@
 
 /* General platform specific identifiers */
 #include "SDL_platform.h"
+
 
 /* Make sure that this isn't included by Visual C++ */
 #ifdef _MSC_VER
@@ -318,5 +321,7 @@
 /* Enable assembly routines */
 #define SDL_ASSEMBLY_ROUTINES 1
 /* #undef SDL_ALTIVEC_BLITTERS */
+
+#endif
 
 #endif /* _SDL_config_h */
