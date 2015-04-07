@@ -52,6 +52,7 @@ fips_begin_lib(sdl)
 		SDL/src/timer/windows/*.c
 		SDL/src/loadso/windows/*.c
 		SDL/src/core/windows/*.c
+# TODO: these two don't have windows guards - all other have https://bugzilla.libsdl.org/show_bug.cgi?id=2932
 		SDL/src/joystick/windows/*.c
 		SDL/src/haptic/windows/*.c
 		SDL/src/main/windows/*.c
@@ -80,8 +81,23 @@ fips_begin_lib(sdl)
 	endif()
 
 	if (FIPS_LINUX)
-		add_definitions(-DHAVE_LIBC=1 -DSDL_THREAD_PTHREADS=1 -DHAVE_PTHREADS_SEM=1 -DHAVE_PTHREAD_RECURSIVE_MUTEX=1)
+		add_definitions(-DHAVE_LIBC=1 -DSDL_THREAD_PTHREAD=1 -DHAVE_PTHREAD_SEM=1 -DHAVE_PTHREAD_RECURSIVE_MUTEX=1)
+
+		check_include_files("dlfcn.h;stdint.h;stddef.h;inttypes.h;stdlib.h;strings.h;string.h;float.h" STDC_HEADERS)
+		if(STDC_HEADERS)
+			add_definitions(-DSTDC_HEADERS=1)
+		endif()
+
+		check_symbol_exists(M_PI math.h HAVE_M_PI)
+		if(HAVE_M_PI)
+			add_definitions(-DHAVE_M_PI=1)
+		endif()
+
 		check_include_file(sys/types.h HAVE_SYS_TYPES_H)
+		if(HAVE_SYS_TYPES_H)
+			add_definitions(-DHAVE_SYS_TYPES_H=1)
+		endif()
+
 		foreach(_HEADER stdio.h stdlib.h stddef.h stdarg.h malloc.h memory.h string.h strings.h inttypes.h stdint.h ctype.h math.h iconv.h signal.h)
 			string(TOUPPER "HAVE_${_HEADER}" _UPPER)
 			string(REPLACE "." "_" _HAVE_H ${_UPPER})
@@ -124,6 +140,22 @@ fips_begin_lib(sdl)
 			endforeach()
 			set(CMAKE_REQUIRED_LIBRARIES)
 			list(APPEND EXTRA_LIBS m)
+		endif()
+
+		check_library_exists(rt clock_gettime "" FOUND_CLOCK_GETTIME)
+		if(FOUND_CLOCK_GETTIME)
+			list(APPEND EXTRA_LIBS rt)
+			add_definitions(-DHAVE_CLOCK_GETTIME=1)
+		else()
+			check_library_exists(c clock_gettime "" FOUND_CLOCK_GETTIME)
+			if(FOUND_CLOCK_GETTIME)
+				add_definitions(-DHAVE_CLOCK_GETTIME=1)
+			endif()
+		endif()
+
+		check_include_file(linux/version.h HAVE_LINUX_VERSION_H)
+		if(HAVE_LINUX_VERSION_H)
+			add_definitions(-DHAVE_LINUX_VERSION_H=1)
 		endif()
 
 		check_library_exists(iconv iconv_open "" HAVE_LIBICONV)
